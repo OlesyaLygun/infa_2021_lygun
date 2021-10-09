@@ -92,7 +92,7 @@ def balls_movements():
             canv.create_oval(balls[i].x - balls[i].r, balls[i].y - balls[i].r, balls[i].x + balls[i].r,
                              balls[i].y + balls[i].r, fill=balls[i].color,
                              width=0)
-        if iterations_moves % 100 in [j for j in range(0, 20)]:
+        if iterations_moves % 100 in [j for j in range(0, 100)]:
             for i in range(1):
                 canv.create_rectangle(squares[i].x - squares[i].a, squares[i].y - squares[i].a,
                                       squares[i].x + squares[i].a, squares[i].y + squares[i].a, fill=squares[i].color)
@@ -140,10 +140,11 @@ def click(event):
             balls[i].vel_x += point
             balls[i].vel_y += point
             if balls[i].vel_x > 20:
+                balls[i].vel_x = 0
                 balls_left -= 1
     for i in range(1):
         if (((event.x - squares[i].x) ** 2 + (event.y - squares[i].y) ** 2) ** 0.5 <= squares[i].a * 2 ** 0.5) and \
-                (iterations_moves % 100 in [j for j in range(0, 20)]):
+                (iterations_moves % 100 in [j for j in range(0, 100)]):
             point += round(150 / squares[i].a)
 point = 0
 new_figures()
