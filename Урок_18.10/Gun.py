@@ -14,6 +14,7 @@ balls = []
 x_borders = 800
 y_borders = 600
 
+
 class ball():
     def __init__(self, x=40, y=450):
         """ Конструктор класса ball
@@ -64,7 +65,7 @@ class ball():
             self.vx *= self.friction
             self.t += 1
             if self.t > 30:
-                    self.r = 0
+                self.r = 0
         self.vy += self.gravit
         if self.x > x_borders - self.r or self.x < 0 + self.r:
             self.vx *= -1
@@ -142,6 +143,8 @@ class target():
     def __init__(self):
         self.points = 0
         self.live = 1
+        self.vx = rnd(0, 6) / 2
+        self.vy = rnd(-3, 3) / 2
         # FIXME: doesn't work!!! How to call this functions when object is created?
         self.id = canv.create_oval(0, 0, 0, 0)
         self.id_points = canv.create_text(30, 30, text=self.points, font='28')
@@ -162,6 +165,25 @@ class target():
         self.points += points
         canv.itemconfig(self.id_points, text=self.points)
 
+    def move(self):
+        if self.live:
+            self.x += self.vx
+            self.y += self.vy
+            if self.x > x_borders - self.r or self.x < 0 + self.r:
+                self.vx *= -1
+            if self.y < 0 + self.r and self.y > 0 - self.r:
+                self.vy *= -1
+            self.set_coords()
+
+    def set_coords(self):
+        canv.coords(
+            self.id,
+            self.x - self.r,
+            self.y - self.r,
+            self.x + self.r,
+            self.y + self.r
+        )
+
 
 t1 = target()
 t2 = target()
@@ -181,6 +203,8 @@ def new_game(event=''):
     z = 0.03
     print(balls)
     while t1.live or t2.live or balls:
+        t1.move()
+        t2.move()
         for b in balls:
             b.move()
             if b.hittest(t1) and t1.live:
