@@ -23,16 +23,15 @@ class ball():
         """
         self.vy_list = [0 for i in range(10)]
         self.x = x
-        self.t = 0
         self.y = y
         self.r = 10
-        self.x0 = x
-        self.y0 = y
         self.vx = 0
         self.vy = 0
-        self.gravit = -7
-        self.energy_loss = -15
+        self.gravit = -3
+        self.t = 1
+        self.friction = 0.3
         self.stop = False
+        self.energy_loss = 0.8
         self.color = choice(['blue', 'green', 'red', 'brown'])
         self.id = canv.create_oval(
             self.x - self.r,
@@ -58,32 +57,34 @@ class ball():
         self.x и self.y с учетом скоростей self.vx и self.vy, силы гравитации, действующей на мяч,
         и стен по краям окна (размер окна 800х600).
         """
-        if not self.stop:
-            self.x += self.vx
-            self.y += self.vy
-            self.vy -= self.gravit
-            if self.x > x_borders - self.r or self.x < 0 + self.r:
-                self.vx *= -1
-            if self.y < 0 + self.r or self.y > y_borders - self.r:
-                self.vy += self.energy_loss
-                self.vy *= -1
-            self.vy_list.append(self.vy)
-            if self.vy_list[len(self.vy_list) - 1] == self.vy_list[len(self.vy_list) - 5]:
-                self.y = y_borders - self.r
-                self.stop = True
-            self.set_coords()
+        self.x += self.vx
+        if not (self.stop):
+            self.y -= self.vy + self.gravit / 2
         else:
-            self.x = x_borders + 200 + self.r
+            self.vx *= self.friction
+            self.t += 1
+            if self.t > 30:
+                    self.r = 0
+        self.vy += self.gravit
+        if self.x > x_borders - self.r or self.x < 0 + self.r:
+            self.vx *= -1
+        if self.y < 0 + self.r:
+            self.vy = -abs(self.vy)
+        if self.y > y_borders - self.r:
+            self.vy = abs(self.vy) * self.energy_loss
+            if abs(self.vy) <= 2:
+                self.stop = True
+        self.set_coords()
 
     def hittest(self, obj):
         """Функция проверяет сталкивалкивается ли данный обьект с целью, описываемой в обьекте obj.
         Args:
             obj: Обьект, с которым проверяется столкновение.
-        Returns:
+        Returns:e
             Возвращает True в случае столкновения мяча и цели. В противном случае возвращает False.
         """
         # FIXME
-        if ((self.x - obj.x) ** 2 + (self.y - obj.y) ** 2) ** 0.5 < obj.r:
+        if ((self.x - obj.x) ** 2 + (self.y - obj.y) ** 2) ** 0.5 < obj.r + self.r:
             return True
         else:
             return False
@@ -110,7 +111,7 @@ class gun():
         new_ball.r += 5
         self.an = math.atan((event.y - new_ball.y) / (event.x - new_ball.x))
         new_ball.vx = self.f2_power * math.cos(self.an)
-        new_ball.vy = self.f2_power * math.sin(self.an)
+        new_ball.vy = -self.f2_power * math.sin(self.an)
         balls.append(new_ball)
         self.f2_on = 0
         self.f2_power = 10
@@ -163,6 +164,7 @@ class target():
 
 
 t1 = target()
+t2 = target()
 screen1 = canv.create_text(400, 300, text='', font='28')
 g1 = gun()
 bullet = 0
@@ -171,21 +173,26 @@ bullet = 0
 def new_game(event=''):
     global gun, t1, screen1, balls, bullet
     t1.new_target()
+    t2.new_target()
     bullet = 0
     canv.bind('<Button-1>', g1.fire2_start)
     canv.bind('<ButtonRelease-1>', g1.fire2_end)
     canv.bind('<Motion>', g1.targetting)
     z = 0.03
     print(balls)
-    while t1.live or balls:
+    while t1.live or t2.live or balls:
         for b in balls:
             b.move()
             if b.hittest(t1) and t1.live:
                 t1.live = 0
                 t1.hit()
+            if b.hittest(t2) and t2.live:
+                t2.live = 0
+                t2.hit()
+            if not t2.live and not t1.live:
                 canv.bind('<Button-1>', '')
                 canv.bind('<ButtonRelease-1>', '')
-                canv.itemconfig(screen1, text='Вы уничтожили цель за ' + str(bullet) + ' выстрелов')
+                canv.itemconfig(screen1, text='Вы уничтожили цели за ' + str(bullet) + ' выстрелов')
         canv.update()
         time.sleep(0.03)
         g1.targetting()
